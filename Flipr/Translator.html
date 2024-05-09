@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Translation Application</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        select, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        #translatedText {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <label for="sourceLanguage">Source Language:</label>
+    <select id="sourceLanguage" onchange="handleLanguageChange('sourceLanguage')">
+        <option value="" disabled selected>Select Source Language</option>
+    </select>
+
+    <label for="targetLanguage">Target Language:</label>
+    <select id="targetLanguage" onchange="handleLanguageChange('targetLanguage')">
+        <option value="" disabled selected>Select Target Language</option>
+    </select>
+
+    <label for="textInput">Input Text:</label>
+    <textarea id="textInput" rows="4"></textarea>
+
+    <button onclick="translateText()">Translate</button>
+
+    <label for="translatedText">Translated Text:</label>
+    <div id="translatedText"></div>
+</div>
+
+<script>
+    // Fetch supported languages and populate dropdowns
+    fetch('https://google-translate1.p.rapidapi.com/language/translate/v2/languages', {
+        headers: {
+            'x-rapidapi-key': '9df66a8390msh084239082af1895p1e166ejsnfd4819',
+            'x-rapidapi-host': 'google-translate1.p.rapidapi.com'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        const languages = data.data.languages;
+        const sourceLanguageSelect = document.getElementById('sourceLanguage');
+        const targetLanguageSelect = document.getElementById('targetLanguage');
+
+        languages.forEach(language => {
+            const optionSource = document.createElement('option');
+            optionSource.value = language.language;
+            optionSource.textContent = language.name;
+            sourceLanguageSelect.appendChild(optionSource);
+
+            const optionTarget = document.createElement('option');
+            optionTarget.value = language.language;
+            optionTarget.textContent = language.name;
+            targetLanguageSelect.appendChild(optionTarget);
+        });
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+
+    function handleLanguageChange(selectId) {
+        const select = document.getElementById(selectId);
+        select.remove(0); // Remove placeholder option
+    }
+
+    function translateText() {
+        const sourceLanguage = document.getElementById('sourceLanguage').value;
+        const targetLanguage = document.getElementById('targetLanguage').value;
+        const text = document.getElementById('textInput').value;
+
+        if (text.trim() === '') {
+            alert('Please enter text to translate.');
+            return;
+        }
+
+        fetch(`https://google-translate1.p.rapidapi.com/language/translate/v2`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/jzip',
+                'x-rapidapi-key': '9df66a8390msh084239082af1895p1e166ejsnfd4819',
+                'x-rapidapi-host': 'google-translate1.p.rapidapi.com'
+            },
+            body: JSON.stringify({
+                q: text,
+                source: sourceLanguage,
+                target: targetLanguage
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const translatedTextDiv = document.getElementById('translatedText');
+            translatedTextDiv.textContent = data.data.translations[0].translatedText;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            const translatedTextDiv = document.getElementById('translatedText');
+            translatedTextDiv.textContent = 'Translation failed. Please try again later.';
+        });
+    }
+    
+</script>
+
+</body>
+</html>
